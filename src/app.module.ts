@@ -1,9 +1,60 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { UsersModule } from './users/users.module';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { TypeOrmModule } from '@nestjs/typeorm';
 
 @Module({
-  imports: [],
+  imports: [
+    // enable environment variables
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: '.env',
+    }),
+    // TypeORM configuration
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        type: 'mysql',
+        host: configService.get<string>('DB_HOST', 'localhost'),
+        port: configService.get<number>('DB_PORT', 5432),
+        username: configService.get<string>('DB_USER', 'mysql'),
+        password: configService.get<string>('DB_PASSWORD', ''),
+        database: configService.get<string>('DB_NAME', 'nest_db'),
+
+        // Entities - specify each entity or use glob pattern
+        entities: [__dirname + '/**/*.entity{.ts,.js}'],
+
+        // synchronize based on environment
+        synchronize: configService.get<string>('NODE_ENV', 'development') === 'development',
+
+        // Logging
+        logging: true,
+
+        // SSL for production
+        ssl:
+          configService.get<string>('NODE_ENV') === 'production'
+            ? { rejectUnauthorized: false }
+            : false,
+
+        // Additional configurations
+        migrations: [__dirname + '/migrations/*{.ts,.js}'],
+        migrationsRun: false,
+        cli: {
+          migrationsDir: 'src/migrations',
+        },
+        extra: {
+          // Pool connections
+          max: 20, // maximum connections
+          idleTimeoutMillis: 30000,
+          connectionTimeoutMillis: 2000,
+        },
+      }),
+    }),
+    UsersModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })
