@@ -4,6 +4,7 @@ import { AppService } from './app.service';
 import { UsersModule } from './users/users.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { HealthModule } from 'src/health/health.module';
 
 @Module({
   imports: [
@@ -28,7 +29,9 @@ import { TypeOrmModule } from '@nestjs/typeorm';
         entities: [__dirname + '/**/*.entity{.ts,.js}'],
 
         // synchronize based on environment
-        synchronize: configService.get<string>('NODE_ENV', 'development') === 'development',
+        synchronize:
+          configService.get<string>('NODE_ENV', 'development') ===
+          'development',
 
         // Logging
         logging: true,
@@ -54,6 +57,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
       }),
     }),
     UsersModule,
+    HealthModule,
   ],
   controllers: [AppController],
   providers: [AppService],
