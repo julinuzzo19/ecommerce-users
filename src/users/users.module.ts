@@ -1,6 +1,9 @@
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { AuthGuard } from 'src/middlewares/auth.guard';
+import { AuthOrGatewayGuard } from 'src/middlewares/authOrGateway.guard';
+import { GatewayGuard } from 'src/middlewares/gateway.guard';
 import { User } from 'src/users/user.entity';
 import { UsersController } from 'src/users/users.controller';
 import { UsersService } from 'src/users/users.service';
@@ -32,7 +35,7 @@ import { UsersService } from 'src/users/users.service';
    * NestJS usa un patrón Singleton por defecto: una sola instancia
    * de UsersService se crea y se reutiliza en toda la app.
    */
-  providers: [UsersService],
+  providers: [UsersService, AuthGuard, GatewayGuard, AuthOrGatewayGuard],
 
   /**
    * exports: Qué providers querés hacer disponibles para otros módulos.

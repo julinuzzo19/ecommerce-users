@@ -6,6 +6,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   Req,
   UploadedFile,
   UseGuards,
@@ -13,18 +14,19 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
-import { AuthGuard } from 'src/users/auth.guard';
+import { AuthGuard } from 'src/middlewares/auth.guard';
 import { RolesGuard } from 'src/users/roles/roles.guard';
 import { CreateUserDto, UpdateUserDto } from 'src/users/user.dto';
 import { UsersService } from 'src/users/users.service';
 import type { Request } from 'express';
+import { AuthOrGatewayGuard } from 'src/middlewares/authOrGateway.guard';
+import { GatewayGuard } from 'src/middlewares/gateway.guard';
 
-@UseGuards(AuthGuard, RolesGuard)
+@UseGuards(RolesGuard)
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  // @Roles(Role.USER)
   @Get(':id')
   async findById(@Param('id') id: string) {
     const userFound = await this.usersService.findById(id);
@@ -32,20 +34,24 @@ export class UsersController {
     return userFound;
   }
 
-  // @Roles(Role.USER)
-  @Get(':email')
-  async findByEmail(@Param('email') email: string) {
+  @UseGuards(AuthOrGatewayGuard)
+  @Get('/by-email')
+  async findByEmail(@Query('email') email: string) {
     const userFound = await this.usersService.findByEmail(email);
+
+    console.log({ userFound, email });
 
     return userFound;
   }
 
+  @UseGuards(GatewayGuard)
   @Post()
   async createUser(@Body() createUserDto: CreateUserDto) {
     const newUser = await this.usersService.createUser(createUserDto);
     return newUser;
   }
 
+  @UseGuards(AuthGuard)
   @Patch(':id')
   async updateUser(
     @Param('id') userId: string,
@@ -55,6 +61,7 @@ export class UsersController {
     return updatedUser;
   }
 
+  @UseGuards(AuthGuard)
   @Post('profile/avatar')
   @UseInterceptors(
     FileInterceptor('file', {
