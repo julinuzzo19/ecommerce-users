@@ -54,6 +54,10 @@ export class UsersService {
     });
   }
 
+  async findAll(): Promise<User[]> {
+    return await this.usersRepository.find();
+  }
+
   async createUser(createUserDto: CreateUserDto): Promise<string> {
     const user = this.usersRepository.create(createUserDto);
 

@@ -7,6 +7,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ConfigService } from '@nestjs/config';
 import { RequestMethod } from '@nestjs/common';
+import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
 import { LoggerService } from './observability/services/logger.service';
 import pinoHttp from 'pino-http';
@@ -49,6 +50,9 @@ async function bootstrap() {
         : '*',
     credentials: true,
   });
+
+  // cookie configuration
+  app.use(cookieParser());
 
   // add prefix
   app.setGlobalPrefix('api/v1', {

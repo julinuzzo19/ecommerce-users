@@ -43,6 +43,12 @@ export class UsersController {
     return userFound;
   }
 
+  @UseGuards(AuthOrGatewayGuard)
+  @Get()
+  async findAll() {
+    return await this.usersService.findAll();
+  }
+
   @UseGuards(GatewayGuard)
   @Post()
   async createUser(@Body() createUserDto: CreateUserDto) {
