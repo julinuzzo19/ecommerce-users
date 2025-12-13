@@ -84,6 +84,8 @@ export class UsersService {
           status: 'success',
         });
 
+        end();
+
         return user.id;
       } catch (error) {
         end({ status: 'failure' }); // Registra el tiempo con status 'failure'
@@ -100,6 +102,23 @@ export class UsersService {
         span.setAttribute('error', true);
         span.setAttribute('error.message', (error as Error).message);
 
+        // Errores de conexión a la base de datos
+        if (
+          error.code === 'ECONNREFUSED' ||
+          error.code === 'ETIMEDOUT' ||
+          error.code === 'ENOTFOUND' ||
+          error.name === 'ConnectionNotFoundError' ||
+          error.message?.includes('Connection lost') ||
+          error.message?.includes(
+            "Can't add new command when connection is in closed state",
+          )
+        ) {
+          throw new InternalServerErrorException('Database connection failed', {
+            cause: error as Error,
+          });
+        }
+
+        // Errores de constraint o validación (culpa del cliente)
         throw new BadRequestException('Error creating user', {
           cause: error as Error,
         });
